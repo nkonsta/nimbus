@@ -11,7 +11,7 @@ struct WeatherView: View {
     @StateObject private var weatherViewModel = WeatherViewModel()
     var body: some View {
         VStack {
-            Button("Fetch Weather") {
+            Button("Get random weather data") {
                 Task {
                     await weatherViewModel.loadWeather()
                 }
@@ -25,21 +25,46 @@ struct WeatherView: View {
                 } else {
                     //Current weather card
                     if (weatherViewModel.isInitialized) {
+                        Text("Current Weather").font(.headline)
                         VStack {
-                            Text("Current Weather").font(.headline)
-                            Text(weatherViewModel.weatherCode.description)
-                            Text(weatherViewModel.temperatureText).bold()
-                            Text("Updated at: \(weatherViewModel.updatedAt)").italic().font(.callout)
+                            if let current = weatherViewModel.currentViewModel {
+                                Image(systemName: current.weatherIcon).font(.system(size: 40))
+                                Text(current.temperatureText).bold()
+                                Text(current.updatedAt).italic().font(.callout)
+                            }
                         }
+                        .background(Color.red.opacity(0.3))
+                        .cornerRadius(10)
+                        Spacer()
                         //Hourly forcast
-                        VStack {
-                            
+                        Text("Hourly forecast").font(.headline)
+                        ScrollView(.horizontal, showsIndicators: false) {
+                                    HStack(spacing: 10) {
+                                        ForEach(weatherViewModel.hourlyViewModel?.hourlyWeather ?? [], id: \.time) { item in
+                                            VStack {
+                                                Image(systemName: item.weatherImage).font(.system(size: 40))
+                                                Text(item.temperature.description)
+                                                Text(item.time)
+                                            }.padding()
+                                            .frame(width: 100, height: 100)
+                                            .background(Color.red.opacity(0.3))
+                                            .cornerRadius(10)
+                                        }
+                                    }
+                                    .padding()
                         }
+                        Spacer()
                         
+                    } else {
+                        VStack {
+                            Image(systemName: "exclamationmark.triangle.fill").font(.system(size: 40))
+                        }
+                        Text("No data to display")
                     }
                 }
 
             }
+            Spacer()
         }
     }
 }
